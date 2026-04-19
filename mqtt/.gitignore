@@ -1,0 +1,16 @@
+# MQTT Configuration (sensitive)
+mosquitto.conf
+mosquitto-*.conf
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Temporary
+tmp/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db

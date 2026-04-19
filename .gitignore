@@ -1,0 +1,84 @@
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+
+# Build and Compilation
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+# Maven
+.m2/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# Gradle
+.gradle/
+gradle-app.setting
+
+# Spring Boot
+application.yml
+application.yaml
+application-*.yml
+application-*.yaml
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Runtime data
+*.pid
+*.seed
+*.pid.lock
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Node / npm (for frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS specific
+Thumbs.db
+.Thumbs.db
+
+# Certificates and keys
+*.key
+*.pem
+*.cert
+*.crt
+
+# Documentation (keep in repo but gitignore if needed)
+# docs/
+# README.md (keep these)
+
+# Docker
+.docker/
+docker-compose.override.yml

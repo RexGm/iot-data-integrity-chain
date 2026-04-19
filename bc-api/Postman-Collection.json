@@ -1,0 +1,253 @@
+{
+  "info": {
+    "_postman_id": "iot-data-integrity-chain",
+    "name": "IoT Data Integrity Chain - Phase 1",
+    "description": "Postman collection for testing Phase 1 Backend Core API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/sensor-data/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "sensor-data", "health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Sensor Data - Device 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"deviceId\": \"sensor-001\",\n  \"rawData\": \"{\\\"temperature\\\": 23.5, \\\"humidity\\\": 65, \\\"timestamp\\\": \\\"2026-04-19T10:30:00\\\"}\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/sensor-data",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "sensor-data"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Sensor Data - Device 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"deviceId\": \"sensor-002\",\n  \"rawData\": \"{\\\"temperature\\\": 21.2, \\\"humidity\\\": 58, \\\"timestamp\\\": \\\"2026-04-19T10:35:00\\\"}\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/sensor-data",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "sensor-data"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Sensor Data - Device 1 (Second Reading)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"deviceId\": \"sensor-001\",\n  \"rawData\": \"{\\\"temperature\\\": 24.1, \\\"humidity\\\": 62, \\\"timestamp\\\": \\\"2026-04-19T10:45:00\\\"}\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/sensor-data",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "sensor-data"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Sensor Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/sensor-data",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "sensor-data"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Sensor Data by ID - 1",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/sensor-data/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "sensor-data", "1"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Sensor Data by Device - sensor-001",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/sensor-data/device/sensor-001",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "sensor-data", "device", "sensor-001"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Sensor Data by Device - sensor-002",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/sensor-data/device/sensor-002",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "sensor-data", "device", "sensor-002"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Verify Data Integrity - ID 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rawData\": \"{\\\"temperature\\\": 23.5, \\\"humidity\\\": 65, \\\"timestamp\\\": \\\"2026-04-19T10:30:00\\\"}\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/sensor-data/1/verify",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "sensor-data", "1", "verify"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Verify Data Integrity - ID 1 (Invalid Data)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rawData\": \"{\\\"temperature\\\": 25.0, \\\"humidity\\\": 70, \\\"timestamp\\\": \\\"2026-04-19T10:30:00\\\"}\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/sensor-data/1/verify",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "sensor-data", "1", "verify"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Duplicate Prevention",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"deviceId\": \"sensor-003\",\n  \"rawData\": \"{\\\"temperature\\\": 23.5, \\\"humidity\\\": 65, \\\"timestamp\\\": \\\"2026-04-19T10:30:00\\\"}\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/sensor-data",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "sensor-data"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Invalid Request - Missing Device ID",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rawData\": \"{\\\"temperature\\\": 22.0, \\\"humidity\\\": 60}\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/sensor-data",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "sensor-data"]
+        }
+      },
+      "response": []
+    }
+  ]
+}
