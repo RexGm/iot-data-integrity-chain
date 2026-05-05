@@ -115,6 +115,33 @@ public class SensorDataController {
     }
 
     /**
+     * Verify data integrity against blockchain
+     * POST /api/sensor-data/{id}/verify-blockchain
+     *
+     * @param id Sensor data ID
+     * @param request Request body containing rawData to verify
+     * @return Verification result (true/false)
+     */
+    @PostMapping("/{id}/verify-blockchain")
+    public ResponseEntity<VerifyResponse> verifySensorDataBlockchainIntegrity(
+            @PathVariable Long id,
+            @RequestBody @Valid VerifyRequest request) {
+        log.info("POST /api/sensor-data/{}/verify-blockchain - Verifying blockchain integrity", id);
+        try {
+            boolean isValid = sensorDataService.verifyBlockchainIntegrity(id, request.getRawData());
+            VerifyResponse response = VerifyResponse.builder()
+                    .id(id)
+                    .isValid(isValid)
+                    .message(isValid ? "Blockchain integrity verified" : "Blockchain integrity check failed")
+                    .build();
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            log.error("Error verifying blockchain data: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
      * Verify data integrity using stored raw data
      * GET /api/sensor-data/{id}/verify-local
      *

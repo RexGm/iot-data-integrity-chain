@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,14 +45,18 @@ public class SensorDataService {
             throw new IllegalArgumentException("Sensor data with this hash already exists");
         }
 
+        LocalDateTime createdAt = LocalDateTime.now();
+        String timestamp = formatTimestamp(createdAt);
+
         // Store hash in blockchain first (fail-fast if blockchain is unavailable)
-        blockchainService.storeHash(hash);
+        blockchainService.storeSensorHash(request.getDeviceId(), hash, timestamp);
 
         // Create and save sensor data
         SensorData sensorData = SensorData.builder()
                 .deviceId(request.getDeviceId())
                 .rawData(request.getRawData())
                 .hash(hash)
+            .createdAt(createdAt)
                 .build();
 
         SensorData savedData = sensorDataRepository.save(sensorData);
@@ -133,6 +139,36 @@ public class SensorDataService {
     }
 
     /**
+     * Verify data integrity against blockchain
+     *
+     * @param id Sensor data ID
+     * @param rawData Raw data to verify
+     * @return true if blockchain hash matches, false otherwise
+     */
+    @Transactional(readOnly = true)
+    public boolean verifyBlockchainIntegrity(Long id, String rawData) {
+        log.info("Verifying blockchain integrity for id: {}", id);
+        SensorData sensorData = sensorDataRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Sensor data not found with id: " + id));
+
+        String calculatedHash = HashUtil.generateSHA256(rawData);
+        String timestamp = formatTimestamp(sensorData.getCreatedAt());
+        boolean isValid = blockchainService.verifySensorData(
+                sensorData.getDeviceId(),
+                calculatedHash,
+                timestamp
+        );
+
+        if (!isValid) {
+            log.warn("Blockchain integrity check failed for id: {}", id);
+        } else {
+            log.debug("Blockchain integrity verified for id: {}", id);
+        }
+
+        return isValid;
+    }
+
+    /**
      * Verify data integrity using stored raw data
      *
      * @param id Sensor data ID
@@ -168,5 +204,9 @@ public class SensorDataService {
                 .hash(sensorData.getHash())
                 .createdAt(sensorData.getCreatedAt())
                 .build();
+    }
+
+    private String formatTimestamp(LocalDateTime timestamp) {
+        return timestamp.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 }

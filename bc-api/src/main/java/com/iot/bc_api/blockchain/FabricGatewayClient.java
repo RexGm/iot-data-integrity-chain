@@ -3,7 +3,6 @@ package com.iot.bc_api.blockchain;
 import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.fabric.client.Contract;
 import org.hyperledger.fabric.client.Gateway;
-import org.hyperledger.fabric.client.GrpcClient;
 import org.hyperledger.fabric.client.identity.Identities;
 import org.hyperledger.fabric.client.identity.Identity;
 import org.hyperledger.fabric.client.identity.Signer;
@@ -49,7 +48,7 @@ public class FabricGatewayClient implements AutoCloseable {
         this.gateway = Gateway.newInstance()
                 .identity(identity)
                 .signer(signer)
-                .connection(GrpcClient.newConnection(channel))
+            .connection(channel)
                 .connect();
 
         this.contract = gateway.getNetwork(properties.getChannel()).getContract(properties.getChaincode());
