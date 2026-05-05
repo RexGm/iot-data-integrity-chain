@@ -115,6 +115,30 @@ public class SensorDataController {
     }
 
     /**
+     * Verify data integrity using stored raw data
+     * GET /api/sensor-data/{id}/verify-local
+     *
+     * @param id Sensor data ID
+     * @return Verification result (true/false)
+     */
+    @GetMapping("/{id}/verify-local")
+    public ResponseEntity<VerifyResponse> verifySensorDataLocalIntegrity(@PathVariable Long id) {
+        log.info("GET /api/sensor-data/{}/verify-local - Verifying stored data integrity", id);
+        try {
+            boolean isValid = sensorDataService.verifyLocalIntegrity(id);
+            VerifyResponse response = VerifyResponse.builder()
+                    .id(id)
+                    .isValid(isValid)
+                    .message(isValid ? "Local integrity verified" : "Local integrity check failed")
+                    .build();
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            log.error("Error verifying local data: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
      * Health check endpoint
      */
     @GetMapping("/health")

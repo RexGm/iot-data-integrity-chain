@@ -82,3 +82,10 @@ Thumbs.db
 # Docker
 .docker/
 docker-compose.override.yml
+
+# Blockchain artifacts
+blockchain/network/crypto-config/
+blockchain/network/channel-artifacts/
+blockchain/network/*.block
+blockchain/network/*.tx
+blockchain/chaincode/*.tgz

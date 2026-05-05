@@ -1,0 +1,123 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: iot-postgres
+    environment:
+      POSTGRES_DB: iot
+      POSTGRES_USER: iot_user
+      POSTGRES_PASSWORD: Stron9EnoughToBeP@ssw0rd
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iot_user -d iot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      iot-network:
+        aliases:
+          - postgres
+
+  # MQTT Broker (Mosquitto)
+  mosquitto:
+    image: eclipse-mosquitto:2.0.18
+    container_name: iot-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mqtt/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-h", "localhost", "-t", "$$SYS/#", "-C", "1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+  # Spring Boot Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: iot-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/iot
+      SPRING_DATASOURCE_USERNAME: iot_user
+      SPRING_DATASOURCE_PASSWORD: Stron9EnoughToBeP@ssw0rd
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_PROFILES_ACTIVE: docker
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_COM_IOT: DEBUG
+      MQTT_BROKER_HOST: mosquitto
+      MQTT_BROKER_PORT: 1883
+      MQTT_TOPIC: iot/sensors/#
+      MQTT_QOS: 1
+      BLOCKCHAIN_ENABLED: "false"
+      BLOCKCHAIN_CHANNEL: mychannel
+      BLOCKCHAIN_CHAINCODE: sensor-contract
+      BLOCKCHAIN_MSP_ID: Org1MSP
+      BLOCKCHAIN_PEER_ENDPOINT: peer0.org1.example.com:7051
+      BLOCKCHAIN_PEER_HOST_ALIAS: peer0.org1.example.com
+      BLOCKCHAIN_TLS_ENABLED: "false"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/sensor-data/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+  # Python Sensor Simulator
+  simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.simulator
+    container_name: iot-simulator
+    environment:
+      MQTT_BROKER_HOST: mosquitto
+      MQTT_BROKER_PORT: 1883
+      DEVICE_IDS: sensor-001,sensor-002,sensor-003,sensor-004,sensor-005
+      TEMP_MIN: "15.0"
+      TEMP_MAX: "35.0"
+      HUMIDITY_MIN: "30.0"
+      HUMIDITY_MAX: "90.0"
+      PUBLISH_INTERVAL: "5"
+      APP_MODE: production
+      APP_DEBUG: "False"
+      LOG_LEVEL: INFO
+      MAX_DURATION: "0"
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    volumes:
+      - ./sensor-simulator/logs:/app/logs
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+networks:
+  iot-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  mosquitto_data:
+    driver: local

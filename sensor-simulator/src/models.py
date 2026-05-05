@@ -50,9 +50,12 @@ class SensorData:
         Returns:
             dict: Dictionary representation with ISO format timestamp
         """
-        data = asdict(self)
-        data['timestamp'] = self.timestamp.isoformat()
-        return data
+        return {
+            "deviceId": self.device_id,
+            "temperature": self.temperature,
+            "humidity": self.humidity,
+            "timestamp": self.timestamp.isoformat(),
+        }
     
     def to_json(self) -> str:
         """

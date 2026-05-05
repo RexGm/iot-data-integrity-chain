@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class SensorDataService {
 
     private final SensorDataRepository sensorDataRepository;
+    private final com.iot.bc_api.blockchain.BlockchainService blockchainService;
 
     /**
      * Save sensor data with SHA-256 hash
@@ -41,6 +42,9 @@ public class SensorDataService {
                     request.getDeviceId(), hash);
             throw new IllegalArgumentException("Sensor data with this hash already exists");
         }
+
+        // Store hash in blockchain first (fail-fast if blockchain is unavailable)
+        blockchainService.storeHash(hash);
 
         // Create and save sensor data
         SensorData sensorData = SensorData.builder()
@@ -123,6 +127,31 @@ public class SensorDataService {
                     id, sensorData.getHash(), calculatedHash);
         } else {
             log.debug("Data integrity verified for id: {}", id);
+        }
+
+        return isValid;
+    }
+
+    /**
+     * Verify data integrity using stored raw data
+     *
+     * @param id Sensor data ID
+     * @return true if stored raw data matches stored hash, false otherwise
+     */
+    @Transactional(readOnly = true)
+    public boolean verifyLocalIntegrity(Long id) {
+        log.info("Verifying local integrity for id: {}", id);
+        SensorData sensorData = sensorDataRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Sensor data not found with id: " + id));
+
+        String calculatedHash = HashUtil.generateSHA256(sensorData.getRawData());
+        boolean isValid = sensorData.getHash().equals(calculatedHash);
+
+        if (!isValid) {
+            log.warn("Local integrity check failed for id: {}. Expected: {}, Got: {}",
+                    id, sensorData.getHash(), calculatedHash);
+        } else {
+            log.debug("Local integrity verified for id: {}", id);
         }
 
         return isValid;
