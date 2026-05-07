@@ -2,6 +2,8 @@ package com.iot.bc_api.service;
 
 import com.iot.bc_api.dto.SensorDataRequest;
 import com.iot.bc_api.dto.SensorDataResponse;
+import com.iot.bc_api.dto.BlockchainSensorHistoryEntry;
+import com.iot.bc_api.dto.BlockchainSensorRecord;
 import com.iot.bc_api.entity.SensorData;
 import com.iot.bc_api.repository.SensorDataRepository;
 import com.iot.bc_api.util.HashUtil;
@@ -10,7 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,11 +49,11 @@ public class SensorDataService {
             throw new IllegalArgumentException("Sensor data with this hash already exists");
         }
 
-        LocalDateTime createdAt = LocalDateTime.now();
+        LocalDateTime createdAt = LocalDateTime.now(Clock.systemUTC());
         String timestamp = formatTimestamp(createdAt);
 
         // Store hash in blockchain first (fail-fast if blockchain is unavailable)
-        blockchainService.storeSensorHash(request.getDeviceId(), hash, timestamp);
+        blockchainService.storeSensorData(request.getDeviceId(), request.getRawData(), timestamp);
 
         // Create and save sensor data
         SensorData sensorData = SensorData.builder()
@@ -151,11 +155,10 @@ public class SensorDataService {
         SensorData sensorData = sensorDataRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Sensor data not found with id: " + id));
 
-        String calculatedHash = HashUtil.generateSHA256(rawData);
         String timestamp = formatTimestamp(sensorData.getCreatedAt());
         boolean isValid = blockchainService.verifySensorData(
                 sensorData.getDeviceId(),
-                calculatedHash,
+            rawData,
                 timestamp
         );
 
@@ -193,6 +196,44 @@ public class SensorDataService {
         return isValid;
     }
 
+        /**
+         * Fetch blockchain record for stored sensor data
+         *
+         * @param id Sensor data ID
+         * @return Record from blockchain
+         */
+        @Transactional(readOnly = true)
+        public BlockchainSensorRecord getBlockchainRecord(Long id) {
+        SensorData sensorData = sensorDataRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Sensor data not found with id: " + id));
+
+        String timestamp = formatTimestamp(sensorData.getCreatedAt());
+        return blockchainService.getSensorRecord(
+            sensorData.getDeviceId(),
+            sensorData.getRawData(),
+            timestamp
+        );
+        }
+
+        /**
+         * Fetch blockchain history for stored sensor data
+         *
+         * @param id Sensor data ID
+         * @return History entries from blockchain
+         */
+        @Transactional(readOnly = true)
+        public List<BlockchainSensorHistoryEntry> getBlockchainHistory(Long id) {
+        SensorData sensorData = sensorDataRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Sensor data not found with id: " + id));
+
+        String timestamp = formatTimestamp(sensorData.getCreatedAt());
+        return blockchainService.getSensorHistory(
+            sensorData.getDeviceId(),
+            sensorData.getRawData(),
+            timestamp
+        );
+        }
+
     /**
      * Map SensorData entity to SensorDataResponse DTO
      */
@@ -207,6 +248,6 @@ public class SensorDataService {
     }
 
     private String formatTimestamp(LocalDateTime timestamp) {
-        return timestamp.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        return timestamp.atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 }

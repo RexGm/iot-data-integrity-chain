@@ -60,13 +60,16 @@ services:
       MQTT_BROKER_PORT: 1883
       MQTT_TOPIC: iot/sensors/#
       MQTT_QOS: 1
-      BLOCKCHAIN_ENABLED: "false"
+      BLOCKCHAIN_ENABLED: "true"
       BLOCKCHAIN_CHANNEL: mychannel
       BLOCKCHAIN_CHAINCODE: sensor-contract
       BLOCKCHAIN_MSP_ID: Org1MSP
       BLOCKCHAIN_PEER_ENDPOINT: peer0.org1.example.com:7051
       BLOCKCHAIN_PEER_HOST_ALIAS: peer0.org1.example.com
-      BLOCKCHAIN_TLS_ENABLED: "false"
+      BLOCKCHAIN_TLS_ENABLED: "true"
+      BLOCKCHAIN_CERT_PATH: /var/hyperledger/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem
+      BLOCKCHAIN_KEY_PATH: /var/hyperledger/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/priv_sk
+      BLOCKCHAIN_TLS_CERT_PATH: /var/hyperledger/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
     ports:
       - "8080:8080"
     depends_on:
@@ -83,6 +86,8 @@ services:
     networks:
       - iot-network
     restart: unless-stopped
+    volumes:
+      - ./blockchain/network/crypto-config:/var/hyperledger/crypto-config:ro
 
   # Python Sensor Simulator
   simulator:
@@ -114,7 +119,8 @@ services:
 
 networks:
   iot-network:
-    driver: bridge
+    external: true
+    name: iot-data-integrity-chain_iot-network
 
 volumes:
   postgres_data:

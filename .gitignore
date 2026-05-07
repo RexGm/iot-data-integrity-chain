@@ -89,3 +89,4 @@ blockchain/network/channel-artifacts/
 blockchain/network/*.block
 blockchain/network/*.tx
 blockchain/chaincode/*.tgz
+blockchain/chaincode/**/*.tgz

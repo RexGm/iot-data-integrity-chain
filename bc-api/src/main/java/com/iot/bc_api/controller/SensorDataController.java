@@ -2,6 +2,8 @@ package com.iot.bc_api.controller;
 
 import com.iot.bc_api.dto.SensorDataRequest;
 import com.iot.bc_api.dto.SensorDataResponse;
+import com.iot.bc_api.dto.BlockchainSensorHistoryEntry;
+import com.iot.bc_api.dto.BlockchainSensorRecord;
 import com.iot.bc_api.service.SensorDataService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -161,6 +163,44 @@ public class SensorDataController {
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             log.error("Error verifying local data: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Get blockchain record for stored sensor data
+     * GET /api/sensor-data/{id}/blockchain-record
+     *
+     * @param id Sensor data ID
+     * @return Blockchain record
+     */
+    @GetMapping("/{id}/blockchain-record")
+    public ResponseEntity<BlockchainSensorRecord> getBlockchainRecord(@PathVariable Long id) {
+        log.info("GET /api/sensor-data/{}/blockchain-record - Fetching blockchain record", id);
+        try {
+            BlockchainSensorRecord record = sensorDataService.getBlockchainRecord(id);
+            return ResponseEntity.ok(record);
+        } catch (IllegalArgumentException e) {
+            log.error("Error fetching blockchain record: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Get blockchain history for stored sensor data
+     * GET /api/sensor-data/{id}/blockchain-history
+     *
+     * @param id Sensor data ID
+     * @return Blockchain history entries
+     */
+    @GetMapping("/{id}/blockchain-history")
+    public ResponseEntity<List<BlockchainSensorHistoryEntry>> getBlockchainHistory(@PathVariable Long id) {
+        log.info("GET /api/sensor-data/{}/blockchain-history - Fetching blockchain history", id);
+        try {
+            List<BlockchainSensorHistoryEntry> history = sensorDataService.getBlockchainHistory(id);
+            return ResponseEntity.ok(history);
+        } catch (IllegalArgumentException e) {
+            log.error("Error fetching blockchain history: {}", e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }

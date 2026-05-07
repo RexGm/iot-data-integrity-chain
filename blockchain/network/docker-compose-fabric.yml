@@ -1,6 +1,6 @@
 services:
   orderer.example.com:
-    image: hyperledger/fabric-orderer:2.5.7
+    image: hyperledger/fabric-orderer:2.5.9
     container_name: orderer.example.com
     hostname: orderer.example.com
     environment:
@@ -35,12 +35,12 @@ services:
           - orderer.example.com
 
   peer0.org1.example.com:
-    image: hyperledger/fabric-peer:2.5.7
+    image: hyperledger/fabric-peer:2.5.9
     container_name: peer0.org1.example.com
     hostname: peer0.org1.example.com
     environment:
       - FABRIC_LOGGING_SPEC=INFO
-      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_ENDPOINT=unix:///var/run/docker.sock
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=iot-data-integrity-chain_iot-network
       - CORE_PEER_ID=peer0.org1.example.com
       - CORE_PEER_ADDRESS=peer0.org1.example.com:7051
@@ -57,7 +57,7 @@ services:
       - CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/peer/tls/ca.crt
       - CORE_LEDGER_STATE_STATEDATABASE=goleveldb
     volumes:
-      - /var/run/docker.sock:/host/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./blockchain/network/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/var/hyperledger/peer/msp
       - ./blockchain/network/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls:/var/hyperledger/peer/tls
     ports:
@@ -67,7 +67,7 @@ services:
       - iot-network
 
   fabric-tools:
-    image: hyperledger/fabric-tools:2.5.7
+    image: hyperledger/fabric-tools:2.5.9
     container_name: fabric-tools
     tty: true
     environment:
@@ -84,6 +84,21 @@ services:
     command: /bin/sh -c "tail -f /dev/null"
     networks:
       - iot-network
+
+  sensor-contract:
+    build:
+      context: ./blockchain/chaincode/sensor-contract
+      dockerfile: Dockerfile
+    container_name: sensor-contract
+    hostname: sensor-contract
+    environment:
+      - CHAINCODE_SERVER_ADDRESS=0.0.0.0:9999
+      - CHAINCODE_ID=${CHAINCODE_ID:-sensor-contract_1.0}
+    networks:
+      iot-network:
+        aliases:
+          - sensor-contract
+    restart: unless-stopped
 
 networks:
   iot-network:
