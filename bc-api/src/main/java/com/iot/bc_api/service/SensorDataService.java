@@ -49,7 +49,7 @@ public class SensorDataService {
             throw new IllegalArgumentException("Sensor data with this hash already exists");
         }
 
-        LocalDateTime createdAt = LocalDateTime.now(Clock.systemUTC());
+        LocalDateTime createdAt = LocalDateTime.now(Clock.systemUTC()).truncatedTo(java.time.temporal.ChronoUnit.MICROS);
         String timestamp = formatTimestamp(createdAt);
 
         // Store hash in blockchain first (fail-fast if blockchain is unavailable)
@@ -60,7 +60,7 @@ public class SensorDataService {
                 .deviceId(request.getDeviceId())
                 .rawData(request.getRawData())
                 .hash(hash)
-            .createdAt(createdAt)
+                .createdAt(createdAt)
                 .build();
 
         SensorData savedData = sensorDataRepository.save(sensorData);
